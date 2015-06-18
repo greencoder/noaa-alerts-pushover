@@ -1,6 +1,6 @@
 ## noaa-alerts-pushover
 
-Sends out NOAA Severe Weather Alerts via Pushover. Any time a new alert is created, you'll get a push.
+Sends out NOAA Severe Weather Alerts via  [Pushover](http://www.pushover.net). Any time a new alert is created, you'll receive a push.
 
 ## Configuration
 
@@ -13,7 +13,7 @@ token = YOUR_PUSHOVER_TOKEN
 user = YOUR_PUSHOVER_USER_KEY
 ````
 
-*You can obtain your credentials at the (Pushover website)[http://www.pushover.net].*
+*You can obtain your credentials at the [Pushover website](http://www.pushover.net).*
 
 ## Usage
 
