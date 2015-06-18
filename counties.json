@@ -1,0 +1,20 @@
+[
+    {
+        "fips": "008005",
+        "name": "Arapahoe County",
+        "state": "CO",
+        "ugc": "CO005"
+    },
+    {
+        "fips": "029071",
+        "name": "Franklin County",
+        "state": "MO",
+        "ugc": "MO071"
+    },
+    {
+        "fips": "047065",
+        "name": "Hamilton County",
+        "state": "TN",
+        "ugc": "TN065"
+    }
+]
