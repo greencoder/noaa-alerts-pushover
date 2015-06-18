@@ -15,6 +15,11 @@ user = YOUR_PUSHOVER_USER_KEY
 
 *You can obtain your credentials at the [Pushover website](http://www.pushover.net).*
 
+You must create the database by running [models.py](models.py) once:
+```
+$ python models.py
+```
+
 ## Usage
 
 Run the [fetch.py](fetch.py) command to call NOAA and send push notifications for any matching alerts:
