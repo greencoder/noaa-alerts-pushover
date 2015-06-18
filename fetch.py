@@ -42,9 +42,14 @@ class Parser(object):
     def send_alert(self, p_alert):
         """ Sends an alert via Pushover API """
 
-        # Construct the payload message and title
-        message = '(%s) %s' % (p_alert.county, p_alert.title)
-        msg_title = 'Weather Alert %s' % p_alert.alert_id[-5:]
+
+        # The push notification title should be like:
+        # 'Arapahoe County Weather Alert'
+        # The message is the title with the last characters
+        # of the identifier added.
+
+        msg_title = '%s Weather Alert' % p_alert.county
+        message = '%s (%s)' % (p_alert.title, p_alert.alert_id[-5:])
 
         self.log('Sending alert: %s' % msg_title)
 
