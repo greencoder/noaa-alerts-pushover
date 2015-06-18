@@ -10,8 +10,10 @@ Create a file called `config.txt` and format it as follows:
 ```
 [pushover]
 token = YOUR_PUSHOVER_TOKEN
-user = YOUR_PUSHOVER_USER
+user = YOUR_PUSHOVER_USER_KEY
 ````
+
+*You can obtain your credentials at the (Pushover website)[http://www.pushover.net].*
 
 ## Usage
 
