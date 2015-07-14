@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     # Get the list of events that we don't want to be alerted about
     try:
-        ignored_events = config.get('events2', 'ignored').split(',')
+        ignored_events = config.get('events', 'ignored').split(',')
     except ConfigParser.NoSectionError:
         ignored_events = []
 
