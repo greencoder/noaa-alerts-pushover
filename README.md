@@ -13,6 +13,12 @@ token = YOUR_PUSHOVER_TOKEN
 user = YOUR_PUSHOVER_USER_KEY
 ````
 
+Optionally, you can create a comma-delimited list of events you wish to ignore so that you won't receive alerts for them:
+```
+[events]
+ignored=Red Flag Warning,Heat Advisory
+```
+
 *You can obtain your credentials at the [Pushover website](http://www.pushover.net).*
 
 You must create the database by running [models.py](models.py) once:

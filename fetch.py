@@ -42,13 +42,12 @@ class Parser(object):
     def send_alert(self, p_alert):
         """ Sends an alert via Pushover API """
 
-
         # The push notification title should be like:
-        # 'Arapahoe County Weather Alert'
+        # 'Arapahoe County (CO) Weather Alert'
         # The message is the title with the last characters
         # of the identifier added.
 
-        msg_title = '%s Weather Alert' % p_alert.county
+        msg_title = '%s (%s) Weather Alert' % (p_alert.county, p_alert.state)
         message = '%s (%s)' % (p_alert.title, p_alert.alert_id[-5:])
 
         self.log('Sending alert: %s' % msg_title)
@@ -110,6 +109,7 @@ class Parser(object):
                 # counties should never be more than one. We only care about the
                 # first, so just assign it.
                 alert_record.county = matched_counties[0]['name']
+                alert_record.state = matched_counties[0]['state']
                 matched_alerts.append(alert_record)
 
         return matched_alerts
@@ -179,6 +179,12 @@ if __name__ == '__main__':
     config_filepath = os.path.join(CUR_DIR, 'config.txt')
     config.read(config_filepath)
 
+    # Get the list of events that we don't want to be alerted about
+    try:
+        ignored_events = config.get('events2', 'ignored').split(',')
+    except ConfigParser.NoSectionError:
+        ignored_events = []
+
     # Instantiate our parser object
     PUSHOVER_TOKEN = config.get('pushover', 'token')
     PUSHOVER_USER = config.get('pushover', 'user')
@@ -212,4 +218,9 @@ if __name__ == '__main__':
 
     # Find any new alerts that match our counties
     for alert in parser.check_new_alerts(run_ts):
-        parser.send_alert(alert)
+        
+        # See if they are in the list of alerts to ignore
+        if alert.event not in ignored_events:
+            parser.send_alert(alert)
+        else:
+            parser.log("Ignoring %s, %s alert for %s" % (alert.county, alert.state, alert.event))
