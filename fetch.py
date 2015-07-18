@@ -1,6 +1,7 @@
 import argparse
 import arrow
 import ConfigParser
+import datetime
 import hashlib
 import json
 import lxml.etree
@@ -17,9 +18,6 @@ except AttributeError:
 
 ATOM_NS = "{http://www.w3.org/2005/Atom}"
 CAP_NS = "{urn:oasis:names:tc:emergency:cap:1.1}"
-
-# Time between checks (in microseconds)
-DELAY = 1200000
 
 class Parser(object):
     """ A convenience object to hold our functionality """
@@ -205,8 +203,9 @@ if __name__ == '__main__':
     if args['purge']:
         Alert.delete().execute()
     else:
-        now_ts = arrow.utcnow().timestamp
-        Alert.delete().where(Alert.expires < now_ts)
+        now = datetime.datetime.utcnow()
+        count = Alert.delete().where(Alert.expires < now).execute()
+        parser.log("Deleted %d expired alerts." % count)
 
     # Create a timestamp that will act as a numeric identifier for
     # this fetching run. We'll use this later to see if a record
@@ -218,7 +217,7 @@ if __name__ == '__main__':
 
     # Find any new alerts that match our counties
     for alert in parser.check_new_alerts(run_ts):
-        
+
         # See if they are in the list of alerts to ignore
         if alert.event not in ignored_events:
             parser.send_alert(alert)
