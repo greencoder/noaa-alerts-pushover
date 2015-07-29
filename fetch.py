@@ -221,8 +221,8 @@ if __name__ == '__main__':
     if args['purge']:
         Alert.delete().execute()
     else:
-        now_ts = arrow.utcnow().timestamp
-        count = Alert.delete().where(Alert.expires_utc_ts < now_ts).execute()
+        ago_ts = arrow.utcnow().replace(days=-1).timestamp
+        count = Alert.delete().where(Alert.expires_utc_ts < ago_ts).execute()
         parser.log("Deleted %d expired alerts." % count)
 
     # Create a timestamp that will act as a numeric identifier for
