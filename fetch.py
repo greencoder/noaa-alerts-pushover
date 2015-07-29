@@ -136,7 +136,7 @@ class Parser(object):
 
             # Calculate the expiration timetamp
             expires = expires_dt.isoformat()
-            expires_utc_ts = expires_dt.to('UTC').timestamp
+            expires_utc_ts = int(expires_dt.to('UTC').timestamp)
 
             fips_list = []
             ugc_list = []
@@ -185,6 +185,8 @@ if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--purge', dest='purge', action='store_true')
     argparser.set_defaults(purge=False)
+    argparser.add_argument('--nopush', dest='nopush', action='store_true')
+    argparser.set_defaults(nopush=False)
     args = vars(argparser.parse_args())
 
     # Make sure we can load our files regardless of where the script is called from
@@ -238,6 +240,9 @@ if __name__ == '__main__':
 
         # See if they are in the list of alerts to ignore
         if alert.event not in ignored_events:
-            parser.send_alert(alert)
+            if not args['nopush']:
+                parser.send_alert(alert)
+            else:
+                print 'Sending pushes disabled by argument'
         else:
             parser.log("Ignoring %s, %s alert for %s" % (alert.county, alert.state, alert.event))
