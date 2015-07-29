@@ -119,13 +119,24 @@ class Parser(object):
         self.log('Fetching Alerts Feed')
         tree = lxml.etree.parse('http://alerts.weather.gov/cap/us.php?x=1')
 
+        # Keep track of how many alerts we create
+        total_count = 0
+        insert_count = 0
+        existing_count = 0
+
         for entry_el in tree.findall(ATOM_NS + 'entry'):
+
+            total_count += 1
 
             alert_id = hashlib.sha224(entry_el.find(ATOM_NS + 'id').text).hexdigest()
             title = entry_el.find(ATOM_NS + 'title').text
             event = entry_el.find(CAP_NS + 'event').text
-            expires = arrow.get(entry_el.find(CAP_NS + 'expires').text).isoformat()
+            expires_dt = arrow.get(entry_el.find(CAP_NS + 'expires').text)
             url = entry_el.find(ATOM_NS + 'link').attrib['href']
+
+            # Calculate the expiration timetamp
+            expires = expires_dt.isoformat()
+            expires_utc_ts = expires_dt.to('UTC').timestamp
 
             fips_list = []
             ugc_list = []
@@ -148,18 +159,25 @@ class Parser(object):
             # we don't update existing alerts. (NOAA doesn't do this I think?)
             try:
                 alert_record = Alert.get(Alert.alert_id == alert_id)
+                existing_count += 1
             except Exception, _:
+                insert_count += 1
                 alert_record = Alert.create(
                     alert_id=alert_id,
                     title=title,
                     event=event,
                     expires=expires,
+                    expires_utc_ts=expires_utc_ts,
                     url=url,
                     fips_codes=','.join(fips_list),
                     ugc_codes=','.join(ugc_list),
                     created=run_timestamp,
                 )
-                alert_record.save()
+
+        # Log our totals
+        parser.log("Found %d alerts in feed." % total_count)
+        parser.log("Inserted %d new alerts." % insert_count)
+        parser.log("Matched %d existing alerts." % existing_count)
 
 if __name__ == '__main__':
 
@@ -203,8 +221,8 @@ if __name__ == '__main__':
     if args['purge']:
         Alert.delete().execute()
     else:
-        now = datetime.datetime.utcnow()
-        count = Alert.delete().where(Alert.expires < now).execute()
+        now_ts = arrow.utcnow().timestamp
+        count = Alert.delete().where(Alert.expires_utc_ts < now_ts).execute()
         parser.log("Deleted %d expired alerts." % count)
 
     # Create a timestamp that will act as a numeric identifier for

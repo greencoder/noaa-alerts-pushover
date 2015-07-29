@@ -12,6 +12,7 @@ class Alert(BaseModel):
     title = peewee.CharField()
     event = peewee.CharField()
     expires = peewee.DateTimeField()
+    expires_utc_ts = peewee.DoubleField()
     url = peewee.CharField()
     fips_codes = peewee.TextField(null=True)
     ugc_codes = peewee.TextField(null=True)
