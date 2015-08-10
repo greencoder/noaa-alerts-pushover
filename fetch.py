@@ -46,7 +46,16 @@ class Parser(object):
         # of the identifier added.
 
         msg_title = '%s (%s) Weather Alert' % (p_alert.county, p_alert.state)
-        message = '%s (%s)' % (p_alert.title, p_alert.alert_id[-5:])
+        
+        # If there are details, we append those into the title. This only 
+        # happens when it's a generic "Special Weather Statement" and helps
+        # add context to the alert.
+        if p_alert.details:
+            title = p_alert.title.replace('issued', '(%s) issued' % p_alert.details)
+        else:
+            title = p_alert.title
+
+        message = '%s (%s)' % (title, p_alert.alert_id[-5:])
 
         self.log('Sending alert: %s' % msg_title)
 
@@ -155,6 +164,19 @@ class Parser(object):
                         if ugc_el is not None and ugc_el.text is not None:
                             ugc_list = ugc_el.text.split(' ')
 
+            # If it's a special or severe weather statement, look inside it to see 
+            # if we can extract any keywords. We'll store these separately but put them
+            # in any push messages we send out.
+            sub_events = []
+            if event in ('Severe Weather Statement', 'Special Weather Statement'):
+                summary = entry_el.find(ATOM_NS + 'summary').text.upper()
+                for item in ('Thunderstorm', 'Wind', 'Rain', 'Hail', 'Tornado', 'Flood'):
+                    if item.upper() in summary:
+                        sub_events.append(item)
+
+            # Concatenate the sub events (if any) into a detail string
+            detail = ', '.join(sub_events)
+
             # See if this alert exists. If it does, don't do anything since
             # we don't update existing alerts. (NOAA doesn't do this I think?)
             try:
@@ -166,6 +188,7 @@ class Parser(object):
                     alert_id=alert_id,
                     title=title,
                     event=event,
+                    detail=detail,
                     expires=expires,
                     expires_utc_ts=expires_utc_ts,
                     url=url,

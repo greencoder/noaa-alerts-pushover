@@ -11,6 +11,7 @@ class Alert(BaseModel):
     alert_id = peewee.CharField()
     title = peewee.CharField()
     event = peewee.CharField()
+    details = peewee.CharField(null=True)
     expires = peewee.DateTimeField()
     expires_utc_ts = peewee.DoubleField()
     url = peewee.CharField()
