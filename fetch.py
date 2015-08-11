@@ -188,7 +188,7 @@ class Parser(object):
                     alert_id=alert_id,
                     title=title,
                     event=event,
-                    detail=detail,
+                    details=detail,
                     expires=expires,
                     expires_utc_ts=expires_utc_ts,
                     url=url,
