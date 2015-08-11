@@ -170,7 +170,7 @@ class Parser(object):
             sub_events = []
             if event in ('Severe Weather Statement', 'Special Weather Statement'):
                 summary = entry_el.find(ATOM_NS + 'summary').text.upper()
-                for item in ('Thunderstorm', 'Wind', 'Rain', 'Hail', 'Tornado', 'Flood'):
+                for item in ('Thunderstorm', 'Strong Storm', 'Wind', 'Rain', 'Hail', 'Tornado', 'Flood'):
                     if item.upper() in summary:
                         sub_events.append(item)
 
