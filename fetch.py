@@ -4,6 +4,7 @@ import ConfigParser
 import datetime
 import hashlib
 import json
+import logging
 import lxml.etree
 import os
 import requests
@@ -30,24 +31,19 @@ class Parser(object):
         self.fips_watch_list = None
         self.ugc_watch_list = None
 
-    def log(self, message):
-        """ Logs a message to the console and a log file """
-        msg = '%s\t%s\n' % (arrow.utcnow(), message)
-        sys.stdout.write(msg)
-        with open(os.path.join(self.current_dir, 'log.txt'), 'a') as fhandle:
-            fhandle.write(msg)
-
-    def send_alert(self, p_alert):
-        """ Sends an alert via Pushover API """
-
+    def create_alert_title(self, p_alert):
+        """ Formats the title for an alert message """
         # The push notification title should be like:
         # 'Arapahoe County (CO) Weather Alert'
         # The message is the title with the last characters
         # of the identifier added.
-
         msg_title = '%s (%s) Weather Alert' % (p_alert.county, p_alert.state)
-        
-        # If there are details, we append those into the title. This only 
+        return msg_title
+
+    def create_alert_message(self, p_alert):
+        """ Creates the message body for the alert message """
+
+        # If there are details, we append those into the title. This only
         # happens when it's a generic "Special Weather Statement" and helps
         # add context to the alert.
         if p_alert.details:
@@ -56,24 +52,24 @@ class Parser(object):
             title = p_alert.title
 
         message = '%s (%s)' % (title, p_alert.alert_id[-5:])
+        return message
 
-        self.log('Sending alert: %s' % msg_title)
-
-        # Send out the push notification
-        url = 'https://api.pushover.net:443/1/messages.json'
-        request = requests.post(url, data={
-            "title": msg_title,
+    def send_pushover_alert(self, title, message, url):
+        """ Sends an alert via Pushover API """
+        api_url = 'https://api.pushover.net:443/1/messages.json'
+        request = requests.post(api_url, data={
+            "title": title,
             "token": self.pushover_token,
             "user": self.pushover_user,
             "message": message,
             "sound": "falling",
-            "url": p_alert.url,
+            "url": url,
         }, verify=False)
 
         if not request.ok:
-            self.log("Error sending push: %s\n" % request.text)
+            logger.error("Error sending push: %s\n" % request.text)
         else:
-            self.log("Sent push: %s" % msg_title)
+            logger.info("Sent push: %s" % title)
 
     def check_new_alerts(self, created_ts):
         """ Looks at the alerts created this run for ones we care about """
@@ -125,7 +121,7 @@ class Parser(object):
         """ Fetches the NOAA alerts XML feed and inserts into database """
 
         # Create an XML doc from the URL contents
-        self.log('Fetching Alerts Feed')
+        logger.info('Fetching Alerts Feed')
         tree = lxml.etree.parse('http://alerts.weather.gov/cap/us.php?x=1')
 
         # Keep track of how many alerts we create
@@ -164,7 +160,7 @@ class Parser(object):
                         if ugc_el is not None and ugc_el.text is not None:
                             ugc_list = ugc_el.text.split(' ')
 
-            # If it's a special or severe weather statement, look inside it to see 
+            # If it's a special or severe weather statement, look inside it to see
             # if we can extract any keywords. We'll store these separately but put them
             # in any push messages we send out.
             sub_events = []
@@ -198,9 +194,9 @@ class Parser(object):
                 )
 
         # Log our totals
-        parser.log("Found %d alerts in feed." % total_count)
-        parser.log("Inserted %d new alerts." % insert_count)
-        parser.log("Matched %d existing alerts." % existing_count)
+        logger.debug("Found %d alerts in feed." % total_count)
+        logger.info("Inserted %d new alerts." % insert_count)
+        logger.debug("Matched %d existing alerts." % existing_count)
 
 if __name__ == '__main__':
 
@@ -210,7 +206,21 @@ if __name__ == '__main__':
     argparser.set_defaults(purge=False)
     argparser.add_argument('--nopush', dest='nopush', action='store_true')
     argparser.set_defaults(nopush=False)
+    argparser.add_argument('--debug', dest='debug', action='store_true')
+    argparser.set_defaults(debug=False)
     args = vars(argparser.parse_args())
+
+    # Set up logger
+    logging.basicConfig(filename='log.txt', level=logging.INFO, format='%(asctime)s  %(message)s')
+    logging.Formatter(fmt='%(asctime)s', datefmt='%Y-%m-%d,%H:%M:%S')
+    logger = logging.getLogger(__name__)
+
+    # Make sure the requests library only logs errors
+    logging.getLogger("requests").setLevel(logging.ERROR)
+
+    # Log debug-level statements if we are in debugging mode
+    if args['debug']:
+        logger.level = logging.DEBUG
 
     # Make sure we can load our files regardless of where the script is called from
     CUR_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -248,7 +258,7 @@ if __name__ == '__main__':
     else:
         ago_ts = arrow.utcnow().replace(days=-1).timestamp
         count = Alert.delete().where(Alert.expires_utc_ts < ago_ts).execute()
-        parser.log("Deleted %d expired alerts." % count)
+        logger.debug("Deleted %d expired alerts." % count)
 
     # Create a timestamp that will act as a numeric identifier for
     # this fetching run. We'll use this later to see if a record
@@ -263,9 +273,17 @@ if __name__ == '__main__':
 
         # See if they are in the list of alerts to ignore
         if alert.event not in ignored_events:
+
+            # Construct the title and message body for the alert
+            alert_title = parser.create_alert_title(alert)
+            alert_msg = parser.create_alert_message(alert)
+            logger.info('Alert to send: %s' % alert_title)
+
+            # Check the argument to see if we should be sending the push
             if not args['nopush']:
-                parser.send_alert(alert)
+                parser.send_pushover_alert(alert_title, alert_msg, alert.url)
             else:
-                print 'Sending pushes disabled by argument'
+                logger.info('Sending pushes disabled by argument')
+
         else:
-            parser.log("Ignoring %s, %s alert for %s" % (alert.county, alert.state, alert.event))
+            logger.info('Ignoring %s, %s alert for %s' % (alert.county, alert.state, alert.event))
