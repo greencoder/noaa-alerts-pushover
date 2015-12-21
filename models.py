@@ -15,6 +15,7 @@ class Alert(BaseModel):
     expires = peewee.DateTimeField()
     expires_utc_ts = peewee.DoubleField()
     url = peewee.CharField()
+    api_url = peewee.CharField()
     fips_codes = peewee.TextField(null=True)
     ugc_codes = peewee.TextField(null=True)
     created = peewee.DateTimeField()

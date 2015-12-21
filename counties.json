@@ -1,9 +1,21 @@
 [
     {
+        "fips": "012057",
+        "name": "Hillsborough County",
+        "state": "FL",
+        "ugc": "FL057"
+    },
+    {
         "fips": "008005",
         "name": "Arapahoe County",
         "state": "CO",
         "ugc": "CO005"
+    },
+    {
+        "fips": "008035",
+        "name": "Douglas County",
+        "state": "CO",
+        "ugc": "CO035"
     },
     {
         "fips": "029071",

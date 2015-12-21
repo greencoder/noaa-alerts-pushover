@@ -1,0 +1,107 @@
+<alert xmlns = 'urn:oasis:names:tc:emergency:cap:1.1'>
+
+<!-- http-date = Mon, 21 Dec 2015 09:49:00 GMT -->
+<identifier>NOAA-NWS-ALERTS-CO1253D261DEB4.HighWindWarning.1253D26FD550CO.BOUNPWBOU.5d98bead77e63e2bf1b31f7f151eacc6</identifier>
+<sender>w-nws.webmaster@noaa.gov</sender>
+<sent>2015-12-21T14:49:00-07:00</sent>
+<status>Actual</status>
+<msgType>Alert</msgType>
+<scope>Public</scope>
+<note>Alert for Jefferson and West Douglas Counties Above 6000 Feet, Gilpin, Clear Creek, Northeast Park Counties Below 9000 Feet; Larimer and Boulder Counties Between 6000 and 9000 Feet (Colorado) Issued by the National Weather Service</note>
+<info>
+<category>Met</category>
+<event>High Wind Warning</event>
+<urgency>Expected</urgency>
+<severity>Severe</severity>
+<certainty>Likely</certainty>
+<eventCode>
+<valueName>SAME</valueName>
+<value>HWW</value>
+</eventCode>
+<effective>2015-12-21T14:49:00-07:00</effective>
+<expires>2015-12-22T06:00:00-07:00</expires>
+<senderName>NWS Boulder (Northeastern Colorado)</senderName>
+<headline>High Wind Warning issued December 21 at 2:49PM MST until December 22 at 6:00AM MST by NWS Boulder</headline>
+<description>...HIGH WIND WARNING IN EFFECT FROM 6 PM THIS EVENING TO 6 AM MST
+TUESDAY FOR THE FRONT RANGE FOOTHILLS...
+THE NATIONAL WEATHER SERVICE IN DENVER HAS ISSUED A HIGH WIND
+WARNING FOR THE FRONT RANGE FOOTHILLS IN NORTHERN COLORADO...
+WHICH IS IN EFFECT FROM 6 PM THIS EVENING TO 6 AM MST TUESDAY. THE
+HIGH WIND WATCH IS NO LONGER IN EFFECT.
+* TIMING...STRONG AND GUSTY WEST WINDS WILL DEVELOP THIS EVENING
+AND THEN DECREASE TOWARD MORNING. STRONGEST WINDS ARE LIKELY TO
+OCCUR BETWEEN 9 PM AND 3 AM MST TONIGHT IN AREAS ABOVE 8000 FEET.
+* WINDS...SUSTAINED WINDS OF 30 TO 45 MPH ARE LIKELY WITH PEAK
+GUSTS UP TO 75 MPH. THE PEAK TO PEAK HIGHWAY AND I-70 FROM WEST
+OF IDAHO SPRINGS TO JUST BELOW THE EISENHOWER TUNNEL WILL BE
+ESPECIALLY SUSCEPTIBLE TO THESE HIGH WINDS.
+* IMPACTS...CONSIDERABLE BLOWING SNOW MAY SEVERELY REDUCE
+VISIBILITIES AT TIMES IN EXPOSED AREAS. SUDDEN AND STRONG WIND
+GUSTS MAY ALSO CAUSE YOU TO TEMPORARILY LOOSE CONTROL OF YOUR
+VEHICLE. BE PREPARED FOR DANGEROUS DRIVING CONDITIONS DUE TO
+THESE VERY STRONG WIND GUSTS AND BLOWING SNOW.</description>
+<instruction>REMEMBER...A HIGH WIND WARNING MEANS THAT STRONG AND POTENTIALLY
+DAMAGING WINDS ARE EITHER OCCURRING OR HIGHLY LIKELY. RESIDENTS
+SHOULD MOVE TRASH CANS...PATIO FURNITURE...AND ANY OTHER ITEMS
+EASILY TOSSED ABOUT BY HIGH WINDS INDOORS. MOTORISTS TRAVELING IN
+HIGH PROFILE AND LIGHT WEIGHT VEHICLES SHOULD CONSIDER DELAYING
+TRAVEL UNTIL THE WINDS SUBSIDE ON TUESDAY.</instruction>
+<parameter>
+<valueName>WMOHEADER</valueName>
+<value></value>
+</parameter>
+<parameter>
+<valueName>UGC</valueName>
+<value>COZ035-036</value>
+</parameter>
+<parameter>
+<valueName>VTEC</valueName>
+<value>/O.UPG.KBOU.HW.A.0002.151222T0100Z-151222T1300Z/
+/O.NEW.KBOU.HW.W.0006.151222T0100Z-151222T1300Z/</value>
+</parameter>
+<parameter>
+<valueName>TIME...MOT...LOC</valueName>
+<value></value>
+</parameter>
+<area>
+<areaDesc>Jefferson and West Douglas Counties Above 6000 Feet, Gilpin, Clear Creek, Northeast Park Counties Below 9000 Feet; Larimer and Boulder Counties Between 6000 and 9000 Feet</areaDesc>
+<polygon></polygon>
+<geocode>
+<valueName>FIPS6</valueName>
+<value>008013</value>
+</geocode>
+<geocode>
+<valueName>FIPS6</valueName>
+<value>008019</value>
+</geocode>
+<geocode>
+<valueName>FIPS6</valueName>
+<value>008035</value>
+</geocode>
+<geocode>
+<valueName>FIPS6</valueName>
+<value>008047</value>
+</geocode>
+<geocode>
+<valueName>FIPS6</valueName>
+<value>008059</value>
+</geocode>
+<geocode>
+<valueName>FIPS6</valueName>
+<value>008069</value>
+</geocode>
+<geocode>
+<valueName>FIPS6</valueName>
+<value>008093</value>
+</geocode>
+<geocode>
+<valueName>UGC</valueName>
+<value>COZ035</value>
+</geocode>
+<geocode>
+<valueName>UGC</valueName>
+<value>COZ036</value>
+</geocode>
+</area>
+</info>
+</alert>

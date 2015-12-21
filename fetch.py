@@ -3,6 +3,7 @@ import arrow
 import ConfigParser
 import datetime
 import hashlib
+import jinja2
 import json
 import logging
 import lxml.etree
@@ -20,8 +21,10 @@ except AttributeError:
 ATOM_NS = "{http://www.w3.org/2005/Atom}"
 CAP_NS = "{urn:oasis:names:tc:emergency:cap:1.1}"
 
+
 class Parser(object):
     """ A convenience object to hold our functionality """
+
 
     def __init__(self, pushover_token, pushover_user, directory):
         self.pushover_token = pushover_token
@@ -31,6 +34,7 @@ class Parser(object):
         self.fips_watch_list = None
         self.ugc_watch_list = None
 
+
     def create_alert_title(self, p_alert):
         """ Formats the title for an alert message """
         # The push notification title should be like:
@@ -39,6 +43,7 @@ class Parser(object):
         # of the identifier added.
         msg_title = '%s (%s) Weather Alert' % (p_alert.county, p_alert.state)
         return msg_title
+
 
     def create_alert_message(self, p_alert):
         """ Creates the message body for the alert message """
@@ -53,6 +58,7 @@ class Parser(object):
 
         message = '%s (%s)' % (title, p_alert.alert_id[-5:])
         return message
+
 
     def send_pushover_alert(self, title, message, url):
         """ Sends an alert via Pushover API """
@@ -70,6 +76,7 @@ class Parser(object):
             logger.error("Error sending push: %s\n" % request.text)
         else:
             logger.info("Sent push: %s" % title)
+
 
     def check_new_alerts(self, created_ts):
         """ Looks at the alerts created this run for ones we care about """
@@ -117,6 +124,32 @@ class Parser(object):
 
         return matched_alerts
 
+
+    def details_for_alert(self, alert):
+        """ Fetches the NOAA detail XML feed for an alert and saves the description """
+        logger.info('Fetching Detail Link for Alert %s' % alert.alert_id)
+        tree = lxml.etree.parse(alert.api_url)
+
+        info_el = tree.find(CAP_NS + 'info')
+        headline = info_el.find(CAP_NS + 'headline').text
+        event = info_el.find(CAP_NS + 'event').text
+        issuer = info_el.find(CAP_NS + 'senderName').text
+        description = info_el.find(CAP_NS + 'description').text
+        instructions = info_el.find(CAP_NS + 'instruction').text
+
+        area_el = info_el.find(CAP_NS + 'area')
+        area = area_el.find(CAP_NS + 'areaDesc').text
+        
+        return {
+            'headline': headline, 
+            'event': event, 
+            'issuer': issuer, 
+            'description': description, 
+            'instructions': instructions, 
+            'area': area,
+        }
+
+
     def fetch(self, run_timestamp):
         """ Fetches the NOAA alerts XML feed and inserts into database """
 
@@ -138,7 +171,8 @@ class Parser(object):
             event = entry_el.find(CAP_NS + 'event').text
             expires_dt = arrow.get(entry_el.find(CAP_NS + 'expires').text)
             url = entry_el.find(ATOM_NS + 'link').attrib['href']
-
+            api_url = entry_el.find(ATOM_NS + 'id').text
+            
             # Calculate the expiration timetamp
             expires = expires_dt.isoformat()
             expires_utc_ts = int(expires_dt.to('UTC').timestamp)
@@ -185,9 +219,11 @@ class Parser(object):
                     title=title,
                     event=event,
                     details=detail,
+                    description = None,
                     expires=expires,
                     expires_utc_ts=expires_utc_ts,
                     url=url,
+                    api_url=api_url,
                     fips_codes=','.join(fips_list),
                     ugc_codes=','.join(ugc_list),
                     created=run_timestamp,
@@ -197,6 +233,7 @@ class Parser(object):
         logger.debug("Found %d alerts in feed." % total_count)
         logger.info("Inserted %d new alerts." % insert_count)
         logger.debug("Matched %d existing alerts." % existing_count)
+
 
 if __name__ == '__main__':
 
@@ -215,6 +252,12 @@ if __name__ == '__main__':
     logging.Formatter(fmt='%(asctime)s', datefmt='%Y-%m-%d,%H:%M:%S')
     logger = logging.getLogger(__name__)
 
+    # Set up the template engine
+    template_loader = jinja2.FileSystemLoader('./templates')
+    template_env = jinja2.Environment(loader=template_loader)
+    template_file = "detail.html"
+    template = template_env.get_template(template_file)
+
     # Make sure the requests library only logs errors
     logging.getLogger("requests").setLevel(logging.ERROR)
 
@@ -224,6 +267,11 @@ if __name__ == '__main__':
 
     # Make sure we can load our files regardless of where the script is called from
     CUR_DIR = os.path.dirname(os.path.realpath(__file__))
+
+    # Set up the output directory
+    OUTPUT_DIR = os.path.join(CUR_DIR, 'output')
+    if not os.path.exists(OUTPUT_DIR):
+        sys.exit('Error! Output directory does not exist.')
 
     # Load the configuration
     config = ConfigParser.ConfigParser()
@@ -273,6 +321,15 @@ if __name__ == '__main__':
 
         # See if they are in the list of alerts to ignore
         if alert.event not in ignored_events:
+
+            # Get the details about the alert from the API
+            details = parser.details_for_alert(alert)
+
+            # Render the detail page
+            output = template.render({'alert': details , 'expires': int(alert.expires_utc_ts) })
+            detail_filepath = os.path.join(OUTPUT_DIR, '%s.html' % alert.alert_id)
+            with open(detail_filepath, 'w') as f:
+                f.write(output)
 
             # Construct the title and message body for the alert
             alert_title = parser.create_alert_title(alert)
