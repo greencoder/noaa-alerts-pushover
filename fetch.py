@@ -60,7 +60,7 @@ class Parser(object):
         return message
 
 
-    def send_pushover_alert(self, title, message, url):
+    def send_pushover_alert(self, id, title, message, url):
         """ Sends an alert via Pushover API """
         api_url = 'https://api.pushover.net:443/1/messages.json'
         request = requests.post(api_url, data={
@@ -69,7 +69,7 @@ class Parser(object):
             "user": self.pushover_user,
             "message": message,
             "sound": "falling",
-            "url": url,
+            "url": 'http://wxalerts.org/alerts/%s.html' % id,
         }, verify=False)
 
         if not request.ok:
@@ -334,11 +334,12 @@ if __name__ == '__main__':
             # Construct the title and message body for the alert
             alert_title = parser.create_alert_title(alert)
             alert_msg = parser.create_alert_message(alert)
+            alert_id = alert.alert_id
             logger.info('Alert to send: %s' % alert_title)
 
             # Check the argument to see if we should be sending the push
             if not args['nopush']:
-                parser.send_pushover_alert(alert_title, alert_msg, alert.url)
+                parser.send_pushover_alert(alert_id, alert_title, alert_msg, alert.url)
             else:
                 logger.info('Sending pushes disabled by argument')
 
