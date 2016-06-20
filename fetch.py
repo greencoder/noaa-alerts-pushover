@@ -128,7 +128,8 @@ class Parser(object):
     def details_for_alert(self, alert):
         """ Fetches the NOAA detail XML feed for an alert and saves the description """
         logger.info('Fetching Detail Link for Alert %s' % alert.alert_id)
-        tree = lxml.etree.parse(alert.api_url)
+        request = requests.get(alert.api_url)
+        tree = lxml.etree.fromstring(request.text.encode('utf-8'))
 
         info_el = tree.find(CAP_NS + 'info')
         headline = info_el.find(CAP_NS + 'headline').text
@@ -155,7 +156,8 @@ class Parser(object):
 
         # Create an XML doc from the URL contents
         logger.info('Fetching Alerts Feed')
-        tree = lxml.etree.parse('http://alerts.weather.gov/cap/us.php?x=1')
+        request = requests.get('http://alerts.weather.gov/cap/us.php?x=1')
+        tree = lxml.etree.fromstring(request.text.encode('utf-8'))
 
         # Keep track of how many alerts we create
         total_count = 0
